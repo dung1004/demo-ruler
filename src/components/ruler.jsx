@@ -16,7 +16,7 @@ class ruler extends Component {
       lineWidth: 2,
       colorDecimal: "#E4E4E4",
       colorDigit: "#E4E4E4",
-      divide: 10,
+      divide: 4,
       precision: 1,
       fontSize: 12,
       fontColor: "#666",
@@ -38,12 +38,12 @@ class ruler extends Component {
       value: 0,
       date: new Date(),
       startTimeDate: {
-        setDate: 0,
-        setMonth: 0,
-        setYear: 0,
-        setHours: 0,
-        setMinutes: 0,
-        setSeconds: 0
+        startDate: 2,
+        startMonth: 6,
+        startYear: 2020,
+        startHours: 0,
+        startMinutes: 0,
+        startSeconds: 0,
       },
     };
   }
@@ -66,7 +66,7 @@ class ruler extends Component {
       canvas.onmouseup = this.touchEnd.bind(this);
     }
     this.drawRuler();
-    this.setStartTimeDate()
+    // this.setStartTimeDate()
   }
 
   touchStart(e) {
@@ -95,6 +95,9 @@ class ruler extends Component {
       if (this.browserEnv && !this.rebound(deltaX)) {
         return;
       }
+
+      // console.log('deltaX',deltaX);
+      
       this.moveDreaw(deltaX);
       this.localState.startX = touch.pageX;
       this.localState.startY = touch.pageY;
@@ -102,16 +105,22 @@ class ruler extends Component {
   }
 
   touchEnd() {
-    this.moveDreaw(this.browserEnv ? this.inertialShift() : 0);
+    // this.moveDreaw(this.browserEnv ? this.inertialShift() : 0);
     this.localState.isTouchEnd = true;
     this.localState.touchPoints = [];
+
+    console.log('===touchEnd===');
+    
   }
 
   touchPoints(e) {
+    // console.log("e", e);
+
     let touch = (e.touches && e.touches[0]) || e,
       time = new Date().getTime(),
       shift = touch.pageX;
 
+    // console.log('touch', touch);
     this.localState.touchPoints.push({ time, shift });
   }
 
@@ -125,21 +134,42 @@ class ruler extends Component {
         }
 
         this.options.currentValue += Math.sign(moveValue) * precision;
-
-        // this.options.seconds++;
-
-        // if (this.options.seconds === 60) {
-        //   this.options.currentValue += Math.sign(moveValue) * precision;
-        //   this.options.seconds = 0;
-        // }
-
-        // console.log("currentValue : ", this.options.currentValue);
-        // console.log("this.options.seconds : ", this.options.seconds);
         this.drawRuler();
         window.requestAnimationFrame(draw);
         _moveValue--;
       };
     draw();
+  }
+
+  // inertialShift() {
+    
+  //   let s = 0;
+  //   if (this.localState.touchPoints.length >= 4) {
+  //     let _points = this.localState.touchPoints.slice(-4),
+  //       v =
+  //         ((_points[3].shift - _points[0].shift) /
+  //           (_points[3].time - _points[0].time)) *
+  //         1000; 
+  //     const a = 6000; 
+  //     s = (Math.sign(v) * Math.pow(v, 2)) / (2 * a); 
+  //   }
+  //   return s;
+  // }
+
+  rebound(deltaX) {
+    console.log('rebound on move log deltaX', deltaX);
+    
+    const { currentValue, maxValue, minValue } = this.options;
+    if (
+      (currentValue === minValue && deltaX > 0) ||
+      (currentValue === maxValue && deltaX < 0)
+    ) {
+      let reboundX =
+        Math.sign(deltaX) * 1.5988 * Math.pow(Math.abs(deltaX), 0.7962);
+      this.canvas.style.transform = `translate3d(${reboundX}px, 0, 0)`;
+      return false;
+    }
+    return true;
   }
 
   drawRuler = () => {
@@ -163,7 +193,6 @@ class ruler extends Component {
       fontSize,
       fontColor,
       fontMarginTop,
-      seconds,
     } = this.options;
 
     currentValue =
@@ -176,6 +205,8 @@ class ruler extends Component {
     currentValue =
       (Math.round((currentValue * 10) / precision) * precision) / 10;
     this.options.currentValue = currentValue;
+
+    // console.log('currentValue: ', currentValue);
 
     this.handleValue(currentValue);
 
@@ -235,49 +266,69 @@ class ruler extends Component {
   };
 
   handleValue = (value) => {
+    // const { startTimeDate } = this.state;
+
     if (value) {
+      let {
+        startDate,
+        startMonth,
+        startYear,
+        startHours,
+        startMinutes,
+        startSeconds,
+      } = this.state.startTimeDate;
+
+      for (let i = 0; i < value; i++) {
+        startSeconds++;
+        startHours = Math.floor(i / 3600);
+        startMinutes = Math.floor(i / 60);
+
+        if (i % 60 === 0) {
+          startSeconds = 0;
+        }
+      }
+      if (startMinutes === 60) {
+        startMinutes = 0;
+      }
+
+      // console.log("startSeconds", startSeconds);
+      // console.log("startMinutes", startMinutes);
+
       this.setState({
+        ...this.state,
         value,
+        startTimeDate: {
+          startDate,
+          startMonth,
+          startYear,
+          startHours,
+          startMinutes,
+          startSeconds,
+        },
       });
     }
   };
 
-
-  setStartTimeDate = () => {
-    const { date } = this.state;
-      date.setDate(2);
-      date.setMonth(6);
-      date.setYear(2020);
-      date.setHours(0);
-      date.setMinutes(0);
-      date.setSeconds(0);
-      this.setState({
-        startTimeDate: {
-          setDate: date.getDate() ,
-          setMonth: date.getMonth(),
-          setYear: date.getYear(),
-          setHours: date.getHours(),
-          setMinutes: date.getMinutes(),
-          setSeconds: date.getSeconds()
-        }
-        
-      })
-  }
-
-
-
   render() {
     const { value, date, startTimeDate } = this.state;
-    
-      
+
     // console.log("render value", value);
-    console.log("render startDate", date.getDate());
-    console.log("render startDate", startTimeDate);
+    // console.log("render startDate", startTimeDate);
 
     return (
       <div className="box-canvas">
         <div className="show-value">
-          <span> {value} </span>
+          <span>
+            <b>
+              Ngày:
+              {`${startTimeDate.startDate}/${startTimeDate.startMonth}/${startTimeDate.startYear}`}{" "}
+            </b>
+          </span>
+          <span className="time">
+            <b>
+              {`${startTimeDate.startHours}h ${startTimeDate.startMinutes}p ${startTimeDate.startSeconds}s`}{" "}
+            </b>
+          </span>
         </div>
         <canvas id="timeline" width="1920" height="30"></canvas>
       </div>
