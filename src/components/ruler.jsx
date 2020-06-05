@@ -232,7 +232,7 @@ class ruler extends Component {
       if (i % 60 === 0) {
         context.font = `${fontSize}px Arial`;
         context.fillText(
-          Math.round(i / 60) / (derivative / 1) + ":00",
+          Math.round((i / 60) % 60) / (derivative / 1) + ":00",
           origin.x + (i - startValue / precision) * divide,
           fontMarginTop
         );
