@@ -16,7 +16,7 @@ class ruler extends Component {
       lineWidth: 2,
       colorDecimal: "#E4E4E4",
       colorDigit: "#E4E4E4",
-      divide: 4,
+      divide: 2,
       precision: 1,
       fontSize: 12,
       fontColor: "#666",
@@ -30,11 +30,10 @@ class ruler extends Component {
     this.localState = {
       startX: 0,
       startY: 0,
-      isTouchEnd: true,
-      touchPoints: [],
     };
 
     this.state = {
+      isMouseDown: false,
       value: 0,
       date: new Date(),
       startTimeDate: {
@@ -45,8 +44,6 @@ class ruler extends Component {
         startMinutes: 0,
         startSeconds: 0,
       },
-      globaleId: null,
-
     };
   }
 
@@ -68,69 +65,46 @@ class ruler extends Component {
       canvas.onmouseup = this.touchEnd.bind(this);
     }
     this.drawRuler();
-    // this.setStartTimeDate()
   }
 
   touchStart(e) {
+    console.log("e start: ", e);
+    this.setState({
+      isMouseDown: true,
+    });
+
     e.preventDefault();
-    if (e || this.localState.isTouchEnd) {
-      this.touchPoints(e);
-      let touch = (e.touches && e.touches[0]) || e;
+    if (e) {
+      let touch = e;
       this.localState.startX = touch.pageX;
       this.localState.startY = touch.pageY;
-      // this.localState.startT = new Date().getTime();
-      this.localState.isTouchEnd = false;
-      // console.log("localState in touchStart", this.localState);
     }
   }
 
   touchMove(e) {
-    if (!this.browserEnv && (e.which !== 1 || e.buttons === 0)) return;
-    this.touchPoints(e);
-    let touch = (e.touches && e.touches[0]) || e,
-      deltaX = touch.pageX - this.localState.startX,
-      deltaY = touch.pageY - this.localState.startY;
-    if (
-      Math.abs(deltaX) > Math.abs(deltaY) &&
-      Math.abs(Math.round(deltaX / this.options.divide)) > 0
-    ) {
-      if (this.browserEnv && !this.rebound(deltaX)) {
-        return;
-      }
+    if (this.state.isMouseDown) {
+      console.log("e touchMove", e);
 
-      // console.log('deltaX',deltaX);
-      
+      if (!this.browserEnv && (e.which !== 1 || e.buttons === 0)) return;
+      let touch = e,
+        deltaX = touch.pageX - this.localState.startX;
+
       this.moveDreaw(deltaX);
       this.localState.startX = touch.pageX;
       this.localState.startY = touch.pageY;
     }
   }
 
-  touchEnd() {
-    // this.moveDreaw(this.browserEnv ? this.inertialShift() : 0);
-    let { globaleId } = this.state;
+  touchEnd(e) {
+    console.log("e end", e);
 
-    this.localState.isTouchEnd = true;
-    this.localState.touchPoints = [];
-
-    // window.cancelAnimationFrame(globaleId);
-    console.log('===touchEnd=== + id la', globaleId);
-    
-  }
-
-  touchPoints(e) {
-    // console.log("e", e);
-
-    let touch = (e.touches && e.touches[0]) || e,
-      time = new Date().getTime(),
-      shift = touch.pageX;
-
-    // console.log('touch', touch);
-    this.localState.touchPoints.push({ time, shift });
+    this.setState({
+      isMouseDown: false,
+    });
   }
 
   moveDreaw(shift) {
-    let { globaleId } = this.state;
+    // console.log("deltaX: ", shift);
     const { divide, precision } = this.options;
     let moveValue = Math.round(-shift / divide),
       _moveValue = Math.abs(moveValue),
@@ -138,56 +112,13 @@ class ruler extends Component {
         if (_moveValue < 1) {
           return;
         }
-
         this.options.currentValue += Math.sign(moveValue) * precision;
-        globaleId = window.requestAnimationFrame(draw);
-
-        setTimeout( () => {
-          window.cancelAnimationFrame(globaleId);
-        }, 500 )
-        this.setState({
-          globaleId,
-        });
-        console.log('globaleId', globaleId);
-        // console.log('currentValue', this.options.currentValue);
-        
-        
+        requestAnimationFrame(draw);
         this.drawRuler();
         _moveValue--;
       };
     draw();
   }
-
-  // inertialShift() {
-    
-  //   let s = 0;
-  //   if (this.localState.touchPoints.length >= 4) {
-  //     let _points = this.localState.touchPoints.slice(-4),
-  //       v =
-  //         ((_points[3].shift - _points[0].shift) /
-  //           (_points[3].time - _points[0].time)) *
-  //         1000; 
-  //     const a = 6000; 
-  //     s = (Math.sign(v) * Math.pow(v, 2)) / (2 * a); 
-  //   }
-  //   return s;
-  // }
-
-  // rebound(deltaX) {
-  //   console.log('rebound on move log deltaX', deltaX);
-    
-  //   const { currentValue, maxValue, minValue } = this.options;
-  //   if (
-  //     (currentValue === minValue && deltaX > 0) ||
-  //     (currentValue === maxValue && deltaX < 0)
-  //   ) {
-  //     let reboundX =
-  //       Math.sign(deltaX) * 1.5988 * Math.pow(Math.abs(deltaX), 0.7962);
-  //     this.canvas.style.transform = `translate3d(${reboundX}px, 0, 0)`;
-  //     return false;
-  //   }
-  //   return true;
-  // }
 
   drawRuler = () => {
     const canvas = document.getElementById("timeline"),
@@ -327,20 +258,18 @@ class ruler extends Component {
   };
 
   render() {
-    const { value, date, startTimeDate } = this.state;
+    const { value, startTimeDate } = this.state;
 
     // console.log("render value", value);
-    // console.log("render startDate", startTimeDate);
-
     return (
       <div className="box-canvas">
         <div className="show-value">
-          <span>
+          {/* <span>
             <b>
               Ngày:
               {`${startTimeDate.startDate}/${startTimeDate.startMonth}/${startTimeDate.startYear}`}{" "}
             </b>
-          </span>
+          </span> */}
           <span className="time">
             <b>
               {`${startTimeDate.startHours}h ${startTimeDate.startMinutes}p ${startTimeDate.startSeconds}s`}{" "}
