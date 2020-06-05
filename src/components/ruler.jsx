@@ -45,6 +45,8 @@ class ruler extends Component {
         startMinutes: 0,
         startSeconds: 0,
       },
+      globaleId: null,
+
     };
   }
 
@@ -106,10 +108,13 @@ class ruler extends Component {
 
   touchEnd() {
     // this.moveDreaw(this.browserEnv ? this.inertialShift() : 0);
+    let { globaleId } = this.state;
+
     this.localState.isTouchEnd = true;
     this.localState.touchPoints = [];
 
-    console.log('===touchEnd===');
+    // window.cancelAnimationFrame(globaleId);
+    console.log('===touchEnd=== + id la', globaleId);
     
   }
 
@@ -125,6 +130,7 @@ class ruler extends Component {
   }
 
   moveDreaw(shift) {
+    let { globaleId } = this.state;
     const { divide, precision } = this.options;
     let moveValue = Math.round(-shift / divide),
       _moveValue = Math.abs(moveValue),
@@ -134,8 +140,19 @@ class ruler extends Component {
         }
 
         this.options.currentValue += Math.sign(moveValue) * precision;
+        globaleId = window.requestAnimationFrame(draw);
+
+        setTimeout( () => {
+          window.cancelAnimationFrame(globaleId);
+        }, 500 )
+        this.setState({
+          globaleId,
+        });
+        console.log('globaleId', globaleId);
+        // console.log('currentValue', this.options.currentValue);
+        
+        
         this.drawRuler();
-        window.requestAnimationFrame(draw);
         _moveValue--;
       };
     draw();
@@ -156,21 +173,21 @@ class ruler extends Component {
   //   return s;
   // }
 
-  rebound(deltaX) {
-    console.log('rebound on move log deltaX', deltaX);
+  // rebound(deltaX) {
+  //   console.log('rebound on move log deltaX', deltaX);
     
-    const { currentValue, maxValue, minValue } = this.options;
-    if (
-      (currentValue === minValue && deltaX > 0) ||
-      (currentValue === maxValue && deltaX < 0)
-    ) {
-      let reboundX =
-        Math.sign(deltaX) * 1.5988 * Math.pow(Math.abs(deltaX), 0.7962);
-      this.canvas.style.transform = `translate3d(${reboundX}px, 0, 0)`;
-      return false;
-    }
-    return true;
-  }
+  //   const { currentValue, maxValue, minValue } = this.options;
+  //   if (
+  //     (currentValue === minValue && deltaX > 0) ||
+  //     (currentValue === maxValue && deltaX < 0)
+  //   ) {
+  //     let reboundX =
+  //       Math.sign(deltaX) * 1.5988 * Math.pow(Math.abs(deltaX), 0.7962);
+  //     this.canvas.style.transform = `translate3d(${reboundX}px, 0, 0)`;
+  //     return false;
+  //   }
+  //   return true;
+  // }
 
   drawRuler = () => {
     const canvas = document.getElementById("timeline"),
