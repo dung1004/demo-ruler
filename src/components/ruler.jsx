@@ -12,19 +12,19 @@ class ruler extends Component {
       boxColor: "#E4E4E4",
       scrollLeft: 0,
       heightDecimal: 35,
-      heightDigit: 18,
+      heightDigit: 0,
       lineWidth: 2,
       colorDecimal: "#E4E4E4",
       colorDigit: "#E4E4E4",
-      divide: 2,
+      divide: 4,
       precision: 1,
       fontSize: 12,
       fontColor: "#666",
       fontMarginTop: 35,
+      // maxValue: 86400,
       maxValue: 1440,
       minValue: 0,
       currentValue: 0,
-      seconds: 0,
     };
 
     this.localState = {
@@ -68,11 +68,10 @@ class ruler extends Component {
   }
 
   touchStart(e) {
-    console.log("e start: ", e);
+    // console.log("e start: ", e);
     this.setState({
       isMouseDown: true,
     });
-
     e.preventDefault();
     if (e) {
       let touch = e;
@@ -83,7 +82,7 @@ class ruler extends Component {
 
   touchMove(e) {
     if (this.state.isMouseDown) {
-      console.log("e touchMove", e);
+      // console.log("e touchMove", e);
 
       if (!this.browserEnv && (e.which !== 1 || e.buttons === 0)) return;
       let touch = e,
@@ -96,24 +95,28 @@ class ruler extends Component {
   }
 
   touchEnd(e) {
-    console.log("e end", e);
+    // console.log("e end", e);
 
     this.setState({
       isMouseDown: false,
     });
   }
 
-  moveDreaw(shift) {
-    // console.log("deltaX: ", shift);
+  moveDreaw(deltaX) {
     const { divide, precision } = this.options;
-    let moveValue = Math.round(-shift / divide),
+    let moveValue = Math.round(-deltaX / divide),
       _moveValue = Math.abs(moveValue),
       draw = () => {
         if (_moveValue < 1) {
           return;
         }
         this.options.currentValue += Math.sign(moveValue) * precision;
-        requestAnimationFrame(draw);
+        // this.options.currentValue += 600;
+
+        if (this.state.isMouseDown) {
+          requestAnimationFrame(draw);
+        }
+
         this.drawRuler();
         _moveValue--;
       };
@@ -143,12 +146,26 @@ class ruler extends Component {
       fontMarginTop,
     } = this.options;
 
-    currentValue =
-      currentValue > minValue
-        ? currentValue < maxValue
-          ? currentValue
-          : maxValue
-        : minValue;
+    // currentValue =
+    //   currentValue > minValue
+    //     ? currentValue < maxValue
+    //       ? currentValue
+    //       : maxValue
+    //     : minValue;
+
+    //   currentValue =
+    // currentValue > minValue
+    //   ? currentValue < maxValue
+    //     ? currentValue
+    //     : ''
+    //   : minValue;
+
+    if (currentValue < minValue) {
+      currentValue = maxValue;
+    }
+    // if (currentValue > maxValue) {
+    //   currentValue = minValue;
+    // }
 
     currentValue =
       (Math.round((currentValue * 10) / precision) * precision) / 10;
@@ -169,6 +186,11 @@ class ruler extends Component {
         : minValue;
     let endValue = startValue + (canvasWidth / divide) * precision;
     endValue = endValue < maxValue ? endValue : maxValue;
+
+    if (endValue === maxValue) {
+      endValue = currentValue + maxValue / 6;
+    }
+
     let origin = {
       x:
         diffCurrentMin > canvasWidth / 2
@@ -187,7 +209,14 @@ class ruler extends Component {
     divide = divide * 2;
     const derivative = 1 / precision;
 
-    for (let i = 0; i <= 1440; i++) {
+    // console.log('endValue: ', endValue);
+    // console.log('endValue/precision: ', endValue / precision);
+
+    for (
+      let i = Math.round((startValue / precision) * 10) / 10;
+      i <= endValue / precision;
+      i++
+    ) {
       context.beginPath();
       context.moveTo(origin.x + (i - startValue / precision) * divide, 0);
       context.lineTo(
@@ -214,8 +243,6 @@ class ruler extends Component {
   };
 
   handleValue = (value) => {
-    // const { startTimeDate } = this.state;
-
     if (value) {
       let {
         startDate,
@@ -229,14 +256,14 @@ class ruler extends Component {
       for (let i = 0; i < value; i++) {
         startSeconds++;
         startHours = Math.floor(i / 3600);
-        startMinutes = Math.floor(i / 60);
+        startMinutes = Math.floor(i / 60) % 60;
 
         if (i % 60 === 0) {
-          startSeconds = 0;
+          startSeconds = 1;
         }
       }
       if (startMinutes === 60) {
-        startMinutes = 0;
+        startMinutes = 1;
       }
 
       // console.log("startSeconds", startSeconds);
@@ -272,8 +299,9 @@ class ruler extends Component {
           </span> */}
           <span className="time">
             <b>
-              {`${startTimeDate.startHours}h ${startTimeDate.startMinutes}p ${startTimeDate.startSeconds}s`}{" "}
-            </b>
+              {`${startTimeDate.startHours}h ${startTimeDate.startMinutes}p ${startTimeDate.startSeconds}s`}
+            </b>{" "}
+            {/* <i>{value}</i> */}
           </span>
         </div>
         <canvas id="timeline" width="1920" height="30"></canvas>
