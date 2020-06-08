@@ -22,7 +22,7 @@ class ruler extends Component {
       fontColor: "#666",
       fontMarginTop: 35,
       // maxValue: 86400,
-      maxValue: 1440,
+      maxValue: 360,
       minValue: 0,
       currentValue: 0,
     };
@@ -37,12 +37,20 @@ class ruler extends Component {
       value: 0,
       date: new Date(),
       startTimeDate: {
-        startDate: 2,
+        startDate: 6,
         startMonth: 6,
         startYear: 2020,
         startHours: 0,
         startMinutes: 0,
         startSeconds: 0,
+      },
+      endTimeDate: {
+        endDate: null,
+        endMonth: null,
+        endYear: null,
+        endHours: null,
+        endMinutes: null,
+        endSeconds: null,
       },
     };
   }
@@ -65,6 +73,7 @@ class ruler extends Component {
       canvas.onmouseup = this.touchEnd.bind(this);
     }
     this.drawRuler();
+    this.setEndTimeDate();
   }
 
   touchStart(e) {
@@ -146,27 +155,30 @@ class ruler extends Component {
       fontMarginTop,
     } = this.options;
 
-    // currentValue =
-    //   currentValue > minValue
-    //     ? currentValue < maxValue
-    //       ? currentValue
-    //       : maxValue
-    //     : minValue;
+    let { startTimeDate, endTimeDate } = this.state;
 
-    //   currentValue =
-    // currentValue > minValue
-    //   ? currentValue < maxValue
-    //     ? currentValue
-    //     : ''
-    //   : minValue;
+    // console.log('startTimeDate', startTimeDate);
+    // console.log('endTimeDate', endTimeDate);
+    
 
-    if (currentValue < minValue) {
-      currentValue = maxValue;
-    }
-    // if (currentValue > maxValue) {
-    //   currentValue = minValue;
-    // }
+    // let y = endTimeDate.endYear - startTimeDate.startYear;
+    // let m = endTimeDate.endMonth - startTimeDate.startMonth;
+    // let d = endTimeDate.endDate - startTimeDate.startDate;
+    // let h = endTimeDate.endHours - startTimeDate.startHours;
+    // let minu = endTimeDate.endMinutes - startTimeDate.startMinutes;
+    // let s = endTimeDate.endSeconds - startTimeDate.startSeconds;
 
+    // let maxCurrentValue = s + (minu * 60) + (h * 3600) + ( d * 86400) + ( m * 2592000 );
+    // console.log('maxCurrentValue', maxCurrentValue);
+
+      currentValue =
+      currentValue > minValue
+        ? currentValue < maxValue
+          ? currentValue
+          : maxValue
+        : minValue;
+   
+    
     currentValue =
       (Math.round((currentValue * 10) / precision) * precision) / 10;
     this.options.currentValue = currentValue;
@@ -188,8 +200,18 @@ class ruler extends Component {
     endValue = endValue < maxValue ? endValue : maxValue;
 
     if (endValue === maxValue) {
-      endValue = currentValue + maxValue / 6;
+      endValue = currentValue + maxValue / 3;
+
+      // maxValue = currentValue;
     }
+
+    // if (
+    //   startTimeDate.startHours === endTimeDate.endHours &&
+    //   startTimeDate.startMinutes === endTimeDate.endMinutes &&
+    //   startTimeDate.startSeconds === endTimeDate.endSeconds
+    // ) {
+
+    // }
 
     let origin = {
       x:
@@ -208,9 +230,6 @@ class ruler extends Component {
     fontMarginTop = fontMarginTop * 2;
     divide = divide * 2;
     const derivative = 1 / precision;
-
-    // console.log('endValue: ', endValue);
-    // console.log('endValue/precision: ', endValue / precision);
 
     for (
       let i = Math.round((startValue / precision) * 10) / 10;
@@ -266,9 +285,6 @@ class ruler extends Component {
         startMinutes = 1;
       }
 
-      // console.log("startSeconds", startSeconds);
-      // console.log("startMinutes", startMinutes);
-
       this.setState({
         ...this.state,
         value,
@@ -284,10 +300,26 @@ class ruler extends Component {
     }
   };
 
-  render() {
-    const { value, startTimeDate } = this.state;
+  setEndTimeDate = () => {
+    const { date } = this.state;
 
-    // console.log("render value", value);
+    this.setState({
+      ...this.state,
+      endTimeDate: {
+        endDate: date.getDate(),
+        endMonth: date.getMonth() + 1,
+        endYear: date.getFullYear(),
+        // endHours: date.getHours(),
+        endHours: 0,
+        endMinutes: date.getMinutes(),
+        endSeconds: date.getSeconds() + 1,
+      },
+    });
+  };
+
+  render() {
+    const { value, startTimeDate, endTimeDate } = this.state;
+
     return (
       <div className="box-canvas">
         <div className="show-value">
@@ -300,6 +332,21 @@ class ruler extends Component {
           <span className="time">
             <b>
               {`${startTimeDate.startHours}h ${startTimeDate.startMinutes}p ${startTimeDate.startSeconds}s`}
+            </b>{" "}
+            {/* <i>{value}</i> */}
+          </span>
+        </div>
+
+        <div className="endTime">
+          {/* <span>
+            <b>
+              Ngày:
+              {`${startTimeDate.startDate}/${startTimeDate.startMonth}/${startTimeDate.startYear}`}{" "}
+            </b>
+          </span> */}
+          <span className="time">
+            <b>
+              {`${endTimeDate.endHours}h ${endTimeDate.endMinutes}p ${endTimeDate.endSeconds}s`}
             </b>{" "}
             {/* <i>{value}</i> */}
           </span>
