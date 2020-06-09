@@ -25,8 +25,9 @@ class ruler extends Component {
       maxValue: 360,
       minValue: 0,
       // currentValue: 86350,
-      currentValue: 10,
+      currentValue: 0,
       // currentValue: 2678380,
+      max: null
     };
 
     this.localState = {
@@ -40,10 +41,10 @@ class ruler extends Component {
       date: new Date(),
       startTimeDate: {
         startDate: 7,
-        startMonth: 1,
+        startMonth: 6,
         startYear: 2020,
-        startHours: 5,
-        startMinutes: 30,
+        startHours: 0,
+        startMinutes: 0,
         startSeconds: 0,
       },
       endTimeDate: {
@@ -106,8 +107,6 @@ class ruler extends Component {
   }
 
   touchEnd(e) {
-    // console.log("e end", e);
-
     this.setState({
       isMouseDown: false,
     });
@@ -155,6 +154,7 @@ class ruler extends Component {
       fontSize,
       fontColor,
       fontMarginTop,
+      max
     } = this.options;
 
     let { startTimeDate, endTimeDate } = this.state;
@@ -172,14 +172,29 @@ class ruler extends Component {
     // let maxCurrentValue = s + (minu * 60) + (h * 3600) + ( d * 86400) + ( m * 2592000 );
     // console.log('maxCurrentValue', maxCurrentValue);
 
-    // currentValue =
-    //   currentValue > minValue
-    //     ? currentValue < maxValue
-    //       ? currentValue
-    //       : maxValue
-    //     : minValue;
+    if (
+      startTimeDate.startDate === endTimeDate.endDate &&
+      startTimeDate.startMonth === endTimeDate.endMonth &&
+      startTimeDate.startYear === endTimeDate.endYear &&
+      startTimeDate.startHours === endTimeDate.endHours &&
+      startTimeDate.startMinutes === endTimeDate.endMinutes &&
+      startTimeDate.startSeconds === endTimeDate.endSeconds
+    ) {
+      this.options.max = currentValue;
+      
+    }
 
-    currentValue = currentValue > minValue ? currentValue : minValue;
+    if (max) {
+      currentValue =
+      currentValue > minValue
+        ? currentValue < max
+          ? currentValue
+          : max
+        : minValue;
+    }
+    
+
+    // currentValue = currentValue > minValue ? currentValue : minValue;
 
     currentValue =
       (Math.round((currentValue * 10) / precision) * precision) / 10;
@@ -205,13 +220,7 @@ class ruler extends Component {
       endValue = currentValue + maxValue;
     }
 
-    // if (
-    //   startTimeDate.startHours === endTimeDate.endHours &&
-    //   startTimeDate.startMinutes === endTimeDate.endMinutes &&
-    //   startTimeDate.startSeconds === endTimeDate.endSeconds
-    // ) {
-
-    // }
+    
 
     let origin = {
       x:
@@ -392,13 +401,20 @@ class ruler extends Component {
     this.setState({
       ...this.state,
       endTimeDate: {
-        endDate: date.getDate(),
-        endMonth: date.getMonth() + 1,
-        endYear: date.getFullYear(),
-        endHours: date.getHours(),
+        // endDate: date.getDate(),
+        // endMonth: date.getMonth() + 1,
+        // endYear: date.getFullYear(),
+        // endHours: date.getHours(),
+        // // endHours: 0,
+        // endMinutes: date.getMinutes(),
+        // endSeconds: date.getSeconds() + 1, 
+        endDate: 7,
+        endMonth: 6,
+        endYear: 2020,
+        endHours: 0,
         // endHours: 0,
-        endMinutes: date.getMinutes(),
-        endSeconds: date.getSeconds() + 1,
+        endMinutes: 10,
+        endSeconds: 30,
       },
     });
   };
