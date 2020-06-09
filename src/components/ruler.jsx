@@ -23,6 +23,7 @@ class ruler extends Component {
       maxValue: 360,
       minValue: 0,
       currentValue: null,
+      dateCurrent: null,
       max: null,
     };
 
@@ -91,7 +92,6 @@ class ruler extends Component {
 
   touchMove(e) {
     if (this.state.isMouseDown) {
-
       if (!this.browserEnv && (e.which !== 1 || e.buttons === 0)) return;
       let touch = e,
         deltaX = touch.pageX - this.localState.startX;
@@ -252,24 +252,80 @@ class ruler extends Component {
         startMinutes,
         startSeconds,
       } = this.state.startTimeDate;
-      let nDate = 0;
+      let nDate = startDate;
+      // let newDate = 0;
 
       for (let i = 0; i < value; i++) {
         startSeconds++;
-        startHours = Math.floor(i / 3600) % 24;
-        startMinutes = Math.floor(i / 60) % 60;
 
-        nDate = Math.floor(i / 86400);
+        startHours = Math.floor(i / 3600);
+        startMinutes = Math.floor(i / 60) % 60;
 
         if (i % 60 === 0) {
           startSeconds = 1;
         }
       }
 
-      if (startMinutes === 60) {
-        startMinutes = 1;
+      if (startHours % 24 === 0) {
+        nDate += 1;
       }
 
+      if (
+        startMonth === 1 ||
+        startMonth === 3 ||
+        startMonth === 5 ||
+        startMonth === 7 ||
+        startMonth === 8 ||
+        startMonth === 10 ||
+        startMonth === 12
+      ) {
+        // console.log('ndate in 31',  this.state.startTimeDate);
+
+        nDate %= 31;
+        // startDate = 0;
+
+        if (nDate === 31 && nDate % 31 === 0) {
+          nDate = 31;
+        }
+
+        if (nDate % 31 === 1) {
+          startMonth++;
+        }
+      }
+
+      if (startMonth === 2) {
+        // console.log('ndate in 28', this.state.startTimeDate);
+
+        nDate %= 28;
+        startDate = 0;
+
+        if (nDate === 28 && nDate % 28 === 0) {
+          nDate = 28;
+        }
+
+        // if (nDate % 28 === 1) {
+        //   startMonth++;
+        // }
+      }
+      if (
+        startMonth === 4 ||
+        startMonth === 6 ||
+        startMonth === 9 ||
+        startMonth === 11
+      ) {
+        console.log(nDate);
+
+        nDate %= 30;
+        startDate = 0;
+
+        if (nDate % 30 === 0) {
+          nDate = 30;
+        }
+
+        if (nDate >= 30 && nDate % 30 === 1) {
+          startMonth++;
+        }
+      }
       this.setState({
         ...this.state,
         value,
@@ -277,94 +333,30 @@ class ruler extends Component {
           startDate,
           startMonth,
           startYear,
-          startHours,
+          startHours: startHours % 24,
           startMinutes,
           startSeconds,
-          newDate: startDate + nDate,
+          newDate: nDate,
         },
       });
-
-      // ======================================
-
-      // if (
-      //   (startMonth === 1 ||
-      //     startMonth === 2 ||
-      //     startMonth === 3 ||
-      //     startMonth === 4 ||
-      //     startMonth === 5 ||
-      //     startMonth === 6 ||
-      //     startMonth === 7 ||
-      //     startMonth === 8 ||
-      //     startMonth === 9 ||
-      //     startMonth === 10 ||
-      //     startMonth === 11 ||
-      //     startMonth === 12) &&
-      //   startHours === 0
-      // ) {
-      //   nDate = 0;
-      // }
-
-      // let { startTimeDate } = this.state;
-
-      // if (startTimeDate?.newDate) {
-      //   if (
-      //     (startMonth === 1 ||
-      //       startMonth === 3 ||
-      //       startMonth === 5 ||
-      //       startMonth === 7 ||
-      //       startMonth === 8 ||
-      //       startMonth === 10 ||
-      //       startMonth === 12) &&
-      //     startTimeDate.newDate === 31 &&
-      //     startHours === 0
-      //   ) {
-      //     // console.log("nDate", nDate);
-
-      //     this.setState({
-      //       ...this.state,
-      //       startTimeDate: {
-      //         startMonth: (startMonth += 1),
-      //         newDate: nDate,
-      //       },
-      //     });
-      //   }
-
-      //   if (
-      //     (startMonth === 4 ||
-      //       startMonth === 6 ||
-      //       startMonth === 9 ||
-      //       startMonth === 11) &&
-      //     startTimeDate.newDate === 30
-      //   ) {
-      //     this.setState({
-      //       ...this.state,
-      //       startTimeDate: {
-      //         startMonth: (startMonth += 1),
-      //         newDate: nDate,
-      //       },
-      //     });
-      //   }
-
-      //   if (startMonth === 2 && startTimeDate.newDate === 28) {
-      //     this.setState({
-      //       ...this.state,
-      //       startTimeDate: {
-      //         startMonth: (startMonth += 1),
-      //         newDate: nDate,
-      //       },
-      //     });
-      //   }
-      // }
     }
   };
 
   showCurrentValueWithStartTime = () => {
-    let { startHours, startMinutes, startSeconds } = this.state.startTimeDate;
+    let {
+      startHours,
+      startMinutes,
+      startSeconds,
+      startDate,
+    } = this.state.startTimeDate;
+    let d = startDate * 86400;
     let h = startHours * 3600;
     let m = startMinutes * 60;
 
     let newCurrentValue = h + m + startSeconds;
+    let dateCurrent = d + newCurrentValue;
     this.options.currentValue = newCurrentValue;
+    this.options.dateCurrent = dateCurrent;
   };
 
   setEndTimeDate = () => {
@@ -403,7 +395,6 @@ class ruler extends Component {
             <b>
               {`${startTimeDate.startHours}h ${startTimeDate.startMinutes}p ${startTimeDate.startSeconds}s`}
             </b>{" "}
-            {/* <i>{value}</i> */}
           </span>
         </div>
 
