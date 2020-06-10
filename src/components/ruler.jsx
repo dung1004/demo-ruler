@@ -253,7 +253,6 @@ class ruler extends Component {
         startSeconds,
       } = this.state.startTimeDate;
       let nDate = startDate;
-      // let newDate = 0;
 
       for (let i = 0; i < value; i++) {
         startSeconds++;
@@ -270,68 +269,12 @@ class ruler extends Component {
         nDate += 1;
       }
 
-      if (
-        startMonth === 1 ||
-        startMonth === 3 ||
-        startMonth === 5 ||
-        startMonth === 7 ||
-        startMonth === 8 ||
-        startMonth === 10 ||
-        startMonth === 12
-      ) {
-        // console.log('ndate in 31',  this.state.startTimeDate);
-
-        nDate %= 31;
-        // startDate = 0;
-
-        if (nDate === 31 && nDate % 31 === 0) {
-          nDate = 31;
-        }
-
-        if (nDate % 31 === 1) {
-          startMonth++;
-        }
-      }
-
-      if (startMonth === 2) {
-        // console.log('ndate in 28', this.state.startTimeDate);
-
-        nDate %= 28;
-        startDate = 0;
-
-        if (nDate === 28 && nDate % 28 === 0) {
-          nDate = 28;
-        }
-
-        // if (nDate % 28 === 1) {
-        //   startMonth++;
-        // }
-      }
-      if (
-        startMonth === 4 ||
-        startMonth === 6 ||
-        startMonth === 9 ||
-        startMonth === 11
-      ) {
-        console.log(nDate);
-
-        nDate %= 30;
-        startDate = 0;
-
-        if (nDate % 30 === 0) {
-          nDate = 30;
-        }
-
-        if (nDate >= 30 && nDate % 30 === 1) {
-          startMonth++;
-        }
-      }
       this.setState({
         ...this.state,
         value,
         startTimeDate: {
+          ...this.state.startTimeDate,
           startDate,
-          startMonth,
           startYear,
           startHours: startHours % 24,
           startMinutes,
@@ -339,6 +282,87 @@ class ruler extends Component {
           newDate: nDate,
         },
       });
+
+      if (startMonth === 1) {
+        if (nDate % 31 !== 1) {
+          console.log('!==');
+          this.setState({
+            startTimeDate: {
+              ...this.state.startTimeDate,
+              // startMonth: startMonth + 1,
+              // newDate: nDate % 31
+            }
+          });
+        }else {
+          console.log('===');
+          this.setState({
+            startTimeDate: {
+              ...this.state.startTimeDate,
+              startMonth: startMonth + 1,
+              // newDate: nDate % 31,
+            }
+          });
+        }
+      }
+
+      
+      // if (startMonth === 1 && nDate % 31 === 1) {
+      //   // nDate %= 31;
+
+      //   // if (nDate === 31 && nDate % 31 === 0) {
+      //   //   nDate = 31;
+      //   // console.log(nDate);
+
+      //   // }
+      //   nDate %= 31;
+
+      //     startMonth = nDate + 1;
+      //     // startDate = 0;
+
+      //     console.log(nDate);
+          
+
+
+        
+      // }
+      // if ( startMonth === 2 ) {
+      //   console.log(nDate);
+      //     // nDate %= 28;
+      //     console.log(nDate);
+          
+      // }
+
+      // if (startMonth === 2 && nDate % 28 === 1) {
+      //   // startDate = 0;
+
+      //   // if (nDate % 28 === 0) {
+      //   //   nDate = 28;
+      //   // }
+
+      //   // if (nDate % 28 === 1) {
+      //   //   startMonth++;
+      //   // }
+      // }
+      // if (
+      //   startMonth === 4 ||
+      //   startMonth === 6 ||
+      //   startMonth === 9 ||
+      //   startMonth === 11
+      // ) {
+      //   console.log(nDate);
+
+      //   nDate %= 30;
+      //   startDate = 0;
+
+      //   if (nDate % 30 === 0) {
+      //     nDate = 30;
+      //   }
+
+      //   if (nDate >= 30 && nDate % 30 === 1) {
+      //     startMonth++;
+      //   }
+      // }
+      
     }
   };
 
