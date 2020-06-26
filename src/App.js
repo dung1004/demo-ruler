@@ -1,14 +1,17 @@
 import React, { Component } from 'react';
 
 import Ruler from './components/ruler';
+import Test from './components/test'
 
-class App extends Component {
-     
-      render(){
-        return (
-          <Ruler />
-        )
-      }
-}
+const App = (props) => {
+
+  return (
+    <div>
+        <Ruler />
+    </div>
+  );
+};
+
 
 export default App;
+

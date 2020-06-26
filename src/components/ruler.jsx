@@ -38,7 +38,7 @@ class ruler extends Component {
       date: new Date(),
       startTimeDate: {
         startDate: 31,
-        startMonth: 1,
+        startMonth: 2,
         startYear: 2020,
         startHours: 23,
         startMinutes: 59,
@@ -244,6 +244,7 @@ class ruler extends Component {
 
   handleValue = (value) => {
     if (value) {
+      let { startTimeDate } = this.state;
       let {
         startDate,
         startMonth,
@@ -251,8 +252,9 @@ class ruler extends Component {
         startHours,
         startMinutes,
         startSeconds,
-      } = this.state.startTimeDate;
-      let nDate = startDate;
+      } = startTimeDate;
+
+      // let newStartDate = startDate;
 
       for (let i = 0; i < value; i++) {
         startSeconds++;
@@ -265,104 +267,52 @@ class ruler extends Component {
         }
       }
 
-      if (startHours % 24 === 0) {
-        nDate += 1;
+      let m = startMonth
+
+      let testDate = new Date(startYear, m, startDate)
+      let testAddDate = new Date(testDate) 
+      if (Math.floor(startHours / 24) === 1) {
+
+        testAddDate.setDate(testAddDate.getDate() + 1)
+
       }
+
+      let nd = new Date(testAddDate)
+
+      let newStartDate = nd.getDate()
+      let newStartMonth = nd.getMonth()
+
+      // if (newStartMonth !== startMonth) {
+      //   this.setState({
+      //     ...this.state,
+      //     startTimeDate: {
+      //       ...startTimeDate,
+      //       startMonth: newStartMonth 
+      //     }
+      //   })
+      // }
+
+      console.log('thang', testDate.getMonth());
+      // console.log('nam', testDate.getFullYear());
+      // console.log('testAddDate', testAddDate);
+      console.log('nd ngay', nd.getDate());
+      console.log('newStartMonth', newStartMonth);
+      // console.log('nd', nd.getFullYear());
+      
 
       this.setState({
         ...this.state,
         value,
         startTimeDate: {
           ...this.state.startTimeDate,
-          startDate,
-          startYear,
           startHours: startHours % 24,
           startMinutes,
           startSeconds,
-          newDate: nDate,
+          // startMonth,
+          newDate: newStartDate,
         },
       });
 
-      if (startMonth === 1) {
-        if (nDate % 31 !== 1) {
-          console.log('!==');
-          this.setState({
-            startTimeDate: {
-              ...this.state.startTimeDate,
-              // startMonth: startMonth + 1,
-              // newDate: nDate % 31
-            }
-          });
-        }else {
-          console.log('===');
-          this.setState({
-            startTimeDate: {
-              ...this.state.startTimeDate,
-              startMonth: startMonth + 1,
-              // newDate: nDate % 31,
-            }
-          });
-        }
-      }
-
-      
-      // if (startMonth === 1 && nDate % 31 === 1) {
-      //   // nDate %= 31;
-
-      //   // if (nDate === 31 && nDate % 31 === 0) {
-      //   //   nDate = 31;
-      //   // console.log(nDate);
-
-      //   // }
-      //   nDate %= 31;
-
-      //     startMonth = nDate + 1;
-      //     // startDate = 0;
-
-      //     console.log(nDate);
-          
-
-
-        
-      // }
-      // if ( startMonth === 2 ) {
-      //   console.log(nDate);
-      //     // nDate %= 28;
-      //     console.log(nDate);
-          
-      // }
-
-      // if (startMonth === 2 && nDate % 28 === 1) {
-      //   // startDate = 0;
-
-      //   // if (nDate % 28 === 0) {
-      //   //   nDate = 28;
-      //   // }
-
-      //   // if (nDate % 28 === 1) {
-      //   //   startMonth++;
-      //   // }
-      // }
-      // if (
-      //   startMonth === 4 ||
-      //   startMonth === 6 ||
-      //   startMonth === 9 ||
-      //   startMonth === 11
-      // ) {
-      //   console.log(nDate);
-
-      //   nDate %= 30;
-      //   startDate = 0;
-
-      //   if (nDate % 30 === 0) {
-      //     nDate = 30;
-      //   }
-
-      //   if (nDate >= 30 && nDate % 30 === 1) {
-      //     startMonth++;
-      //   }
-      // }
-      
     }
   };
 
@@ -400,6 +350,7 @@ class ruler extends Component {
   };
 
   render() {
+    
     const { value, startTimeDate, endTimeDate } = this.state;
 
     return (
@@ -420,6 +371,7 @@ class ruler extends Component {
               {`${startTimeDate.startHours}h ${startTimeDate.startMinutes}p ${startTimeDate.startSeconds}s`}
             </b>{" "}
           </span>
+          {/* <span>value: {value}</span> */}
         </div>
 
         <div className="endTime">
