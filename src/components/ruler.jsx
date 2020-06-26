@@ -35,10 +35,9 @@ class ruler extends Component {
     this.state = {
       isMouseDown: false,
       value: 0,
-      date: new Date(),
       startTimeDate: {
-        startDate: 31,
-        startMonth: 2,
+        startDate: 30,
+        startMonth: 3, // 0 -> 11 0 === 1 && 11 === 12
         startYear: 2020,
         startHours: 23,
         startMinutes: 59,
@@ -65,15 +64,11 @@ class ruler extends Component {
     canvas.height = canvasHeight * 2;
     canvas.style.width = canvasWidth + "px";
     canvas.style.height = canvasHeight + "px";
-    if (this.browserEnv) {
-      canvas.ontouchstart = this.touchStart.bind(this);
-      canvas.ontouchmove = this.touchMove.bind(this);
-      canvas.ontouchend = this.touchEnd.bind(this);
-    } else {
-      canvas.onmousedown = this.touchStart.bind(this);
-      canvas.onmousemove = this.touchMove.bind(this);
-      canvas.onmouseup = this.touchEnd.bind(this);
-    }
+
+    canvas.onmousedown = this.touchStart.bind(this);
+    canvas.onmousemove = this.touchMove.bind(this);
+    canvas.onmouseup = this.touchEnd.bind(this);
+    
     this.drawRuler();
     this.setEndTimeDate();
   }
@@ -91,6 +86,7 @@ class ruler extends Component {
   }
 
   touchMove(e) {
+    
     if (this.state.isMouseDown) {
       if (!this.browserEnv && (e.which !== 1 || e.buttons === 0)) return;
       let touch = e,
@@ -166,8 +162,10 @@ class ruler extends Component {
     }
 
     if (max) {
+      
       currentValue = currentValue < max ? currentValue : max;
     }
+
     currentValue = currentValue > minValue ? currentValue : minValue;
 
     currentValue =
@@ -254,8 +252,6 @@ class ruler extends Component {
         startSeconds,
       } = startTimeDate;
 
-      // let newStartDate = startDate;
-
       for (let i = 0; i < value; i++) {
         startSeconds++;
 
@@ -267,38 +263,16 @@ class ruler extends Component {
         }
       }
 
-      let m = startMonth
-
-      let testDate = new Date(startYear, m, startDate)
-      let testAddDate = new Date(testDate) 
+      let date = new Date(startYear, startMonth, startDate);
+      let oneAddDate = new Date(date);
       if (Math.floor(startHours / 24) === 1) {
-
-        testAddDate.setDate(testAddDate.getDate() + 1)
-
+        oneAddDate.setDate(oneAddDate.getDate() + 1);
       }
 
-      let nd = new Date(testAddDate)
+      let nd = new Date(oneAddDate);
 
-      let newStartDate = nd.getDate()
-      let newStartMonth = nd.getMonth()
-
-      // if (newStartMonth !== startMonth) {
-      //   this.setState({
-      //     ...this.state,
-      //     startTimeDate: {
-      //       ...startTimeDate,
-      //       startMonth: newStartMonth 
-      //     }
-      //   })
-      // }
-
-      console.log('thang', testDate.getMonth());
-      // console.log('nam', testDate.getFullYear());
-      // console.log('testAddDate', testAddDate);
-      console.log('nd ngay', nd.getDate());
-      console.log('newStartMonth', newStartMonth);
-      // console.log('nd', nd.getFullYear());
-      
+      let newStartDate = nd.getDate();
+      let newStartMonth = nd.getMonth() + 1;
 
       this.setState({
         ...this.state,
@@ -308,11 +282,10 @@ class ruler extends Component {
           startHours: startHours % 24,
           startMinutes,
           startSeconds,
-          // startMonth,
-          newDate: newStartDate,
+          newStartDate,
+          newStartMonth,
         },
       });
-
     }
   };
 
@@ -334,8 +307,7 @@ class ruler extends Component {
   };
 
   setEndTimeDate = () => {
-    const { date } = this.state;
-
+    let date = new Date()
     this.setState({
       ...this.state,
       endTimeDate: {
@@ -350,9 +322,7 @@ class ruler extends Component {
   };
 
   render() {
-    
     const { value, startTimeDate, endTimeDate } = this.state;
-
     return (
       <div className="box-canvas">
         <div className="show-value">
@@ -360,10 +330,14 @@ class ruler extends Component {
             <b>
               Ngày:
               {`${
-                startTimeDate.newDate
-                  ? startTimeDate.newDate
+                startTimeDate.newStartDate
+                  ? startTimeDate.newStartDate
                   : startTimeDate.startDate
-              }/${startTimeDate.startMonth}/${startTimeDate.startYear}`}{" "}
+              }/${
+                startTimeDate.newStartMonth
+                  ? startTimeDate.newStartMonth
+                  : startTimeDate.startMonth + 1
+              }/${startTimeDate.startYear}`}{" "}
             </b>
           </span>
           <span className="time">
