@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 // import Ruler from './components/ruler';
 import Mapdemo from './components/map';
 import MapDemoDraw from './components/map_demo_draw'
+import DrawLine from './components/draw/draw_line'
 
 const App = (props) => {
 
@@ -10,7 +11,7 @@ const App = (props) => {
     <div>
         {/* <Ruler /> */}
         {/* <Mapdemo /> */}
-        <MapDemoDraw />
+        <DrawLine />
     </div>
   );
 };
