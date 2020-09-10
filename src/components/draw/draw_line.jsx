@@ -18,14 +18,15 @@ const style = {
     zIndex: 10,
   },
   button: {
-    margin: 5
+    margin: 5,
+    minWidth: 30
   },
   btnRemove: {
     cursor: "pointer",
   },
   boxButton: {
     display: "flex"
-  }
+  },
 };
 
 class DrawLine extends Component {
@@ -69,7 +70,6 @@ class DrawLine extends Component {
     var map = new window.google.maps.Map(document.getElementById("map"), {
       zoom: 13,
       center: new window.google.maps.LatLng(16.059506, 108.219112),
-      // mapTypeId: window.google.maps.MapTypeId.SATELLITE,
     });
 
     drawingManager = new window.google.maps.drawing.DrawingManager({
@@ -88,9 +88,13 @@ class DrawLine extends Component {
       {
         ...this.state,
         drawingManager,
-      },
-      () => this.buildColorPalette()
+      }
+      
+      // ,
+      // () => this.buildColorPalette()
     );
+
+    this.buildColorPalette()
 
     window.google.maps.event.addListener(
       drawingManager,
@@ -119,6 +123,7 @@ class DrawLine extends Component {
         strokeColor: data.color,
         strokeWeight: 4,
         id: data.id,
+        type: data.type
       });
 
       window.google.maps.event.addListener(polyline, "click", () =>
@@ -142,7 +147,7 @@ class DrawLine extends Component {
 
     drawingManager.setDrawingMode(null);
 
-    let paths = this.handleParsePaths(newShape.type, newShape);
+    let paths = this.handleParsePaths(newShape);
 
     let objectShape = {
       id,
@@ -180,7 +185,7 @@ class DrawLine extends Component {
 
   clearShapeSelected = () => {
     let { shapeSelected } = this.state;
-
+    console.log('shapeSelected', shapeSelected)
     if (shapeSelected) {
       shapeSelected.setEditable(false);
       this.setState({
@@ -195,7 +200,9 @@ class DrawLine extends Component {
     this.clearShapeSelected();
     shape.setEditable(true);
     this.handleSelectColor(shape.get("strokeColor") || shape.get("fillColor"));
-
+    
+    // let elm = document.querySelector("#button-action").style.opacity = ".4"
+    // console.log(elm)
     this.setState({
       ...this.state,
       shapeSelected: shape,
@@ -226,6 +233,7 @@ class DrawLine extends Component {
 
   handleSelectColor = (color) => {
     let { dataOptions, drawingManager } = this.state;
+    console.log('drawingManager', drawingManager)
 
     dataOptions.map((data, index) => {
       
@@ -260,9 +268,10 @@ class DrawLine extends Component {
   };
 
   makeColorButton = (color, title) => {
-    let { classes } = this.props
-     let result =  <Tooltip title={title} arrow>
-                      <Button variant="outlined" size="small" style={{borderColor: color, background: "white", }} data-color={color} ref={this.handleRef} className={`${classes.button} button-color`}>
+   
+    const { classes } = this.props
+     let result =  <Tooltip title={title} arrow >
+                      <Button variant="outlined" size="small" style={{borderColor: color, background: "white", }} data-color={color} ref={this.handleRef} className={`${classes.button} button-color`} >
                         <ShowChartIcon style={{color: color}} />
                       </Button>
                   </Tooltip>
@@ -311,6 +320,8 @@ class DrawLine extends Component {
 
   handleEditableShape = (shape, dataShape) => {
     let paths = this.handleParsePaths(shape);
+    console.log('shape', shape)
+    console.log('paths', paths)
 
     if (dataShape.length) {
       dataShape.map((data) => {
@@ -323,17 +334,17 @@ class DrawLine extends Component {
     localStorage.setItem("dataShape", JSON.stringify(dataShape));
   };
 
-  handleParsePaths = (type, shape) => {
+  handleParsePaths = (shape) => {
     let paths = [];
 
-    if(type === 'polyline') {
+    if(shape.type === 'polyline') {
       let pathArray = shape.getPath().i;
       pathArray.forEach(function (path) {
         paths.push({ lat: path.lat(), lng: path.lng() });
       });
 
     }
-    if(type === 'circle') {
+    if(shape.type === 'circle') {
       paths.push({ lat: shape.center.lat(), lng: shape.center.lng() })
     }
     
