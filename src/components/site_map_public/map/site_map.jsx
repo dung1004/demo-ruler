@@ -4,8 +4,11 @@ import { IconButton, Button, Tooltip } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import ShowChartIcon from "@material-ui/icons/ShowChart";
 
-import marker_camera from './../../../assets/images/marker/marker_camera.png'
-import marker_parking from './../../../assets/images/marker/marker_parking.png'
+import marker_camera from "./../../../assets/images/marker/marker_camera.png";
+import marker_parking from "./../../../assets/images/marker/marker_parking.png";
+import {CustomMarker} from './CustomMarker'
+import Img from './marker.jpg'
+import "./marker.css"
 
 export default function SiteMap() {
   const classes = styles();
@@ -63,6 +66,7 @@ export default function SiteMap() {
   ];
 
   let shapeSelected = null;
+  let infoWindowActive = null;
 
   //useState
   let [drawingManager, setDrawingManager] = useState(null);
@@ -78,7 +82,6 @@ export default function SiteMap() {
   }, []);
 
   useEffect(() => {
-    
     if (drawingManager) {
       window.google.maps.event.addListener(
         drawingManager,
@@ -89,23 +92,21 @@ export default function SiteMap() {
   });
 
   const init = () => {
-    console.log(window.google.maps)
     let map = new window.google.maps.Map(document.getElementById("map"), {
       zoom: 16,
-      center: new window.google.maps.LatLng(16.065898,108.218769),
+      center: new window.google.maps.LatLng(16.065898, 108.218769),
       styles: [
         {
-          "featureType": "poi",
-          // "elementType": 'labels',
-          "stylers": [
-            { "visibility": "off" }
-          ]
-        }
-      ]
-     
-
+          featureType: "poi",
+          stylers: [{ visibility: "off" }],
+        },
+        {
+          featureType: "transit.station",
+          stylers: [{ visibility: "off" }],
+        },
+      ],
     });
-    
+
     drawingManager = new window.google.maps.drawing.DrawingManager({
       drawingControlOptions: {
         position: window.google.maps.ControlPosition.TOP_CENTER,
@@ -120,39 +121,48 @@ export default function SiteMap() {
     let icons = {
       camera: {
         url: marker_camera,
-        scaledSize: new window.google.maps.Size(30, 30)
+        scaledSize: new window.google.maps.Size(30, 30),
       },
       parking: {
         url: marker_parking,
-        scaledSize: new window.google.maps.Size(30, 30)
-      }
-    }
+        scaledSize: new window.google.maps.Size(30, 30),
+      },
+    };
 
-    let currentInfowindow = null
-    let currentMarker = null
-
+    let currentInfowindow = null;
+    let currentMarker = null;
 
     dataListParking.map((data) => {
-      let marker = new window.google.maps.Marker({
-        position: data.position,
-        title: data.name,
-        icon: icons[data.type],
-        map: map
-      });
+      let marker = new CustomMarker(
+        data.position,
+        map,
+        Img
+      )
+
+      // console.log('marker', marker)
+      // let marker = new window.google.maps.Marker({
+      //   position: data.position,
+      //   title: data.name,
+      //   icon: icons[data.type],
+      //   map: map,
+      // });
+      marker.setMap(map)
+
+      
 
       let infoWindow = new window.google.maps.InfoWindow({
-        content: data.name
-      })
+        content: data.name,
+      });
 
       // marker.setMap(map);
-      marker.addListener("click", function() {
-        if(currentInfowindow !== null) {
-          currentInfowindow.close(map, marker)
+      marker.addListener("click", function () {
+        if (currentInfowindow !== null) {
+          currentInfowindow.close(map, marker);
         }
-        infoWindow.open(map, marker)
-        currentInfowindow = infoWindow
-        currentMarker = marker
-      })
+        infoWindow.open(map, marker);
+        currentInfowindow = infoWindow;
+        currentMarker = marker;
+      });
     });
 
     setDrawingManager(drawingManager);
@@ -164,14 +174,18 @@ export default function SiteMap() {
       clearShapeSelected
     );
 
-    window.google.maps.event.addListener(map, "click", function() {
-      if(currentInfowindow !== null) {
-        currentInfowindow.close(map, currentMarker)
+    window.google.maps.event.addListener(map, "click", function () {
+      if (currentInfowindow !== null) {
+        currentInfowindow.close(map, currentMarker);
       }
-      
-      clearShapeSelected()
+
+      if (infoWindowActive) {
+        infoWindowActive.open(null);
+      }
+
+      clearShapeSelected();
     });
-    
+
     loadData(map);
   };
 
@@ -183,17 +197,13 @@ export default function SiteMap() {
         strokeWeight: 4,
         id: data.id,
         type: data.type,
+        name: data.name,
       });
 
-      window.google.maps.event.addListener(polyline, "click", () =>
-        handleShapeSelected(polyline)
-      );
-
-      window.google.maps.event.addDomListener(
-        document.getElementById("delete-button"),
-        "click",
-        handleDeleteShapeSelected
-      );
+      window.google.maps.event.addListener(polyline, "click", function (e) {
+        handleShapeSelected(polyline);
+        showInfoWindow(e, polyline, map);
+      });
 
       window.google.maps.event.addListener(polyline.getPath(), "set_at", () =>
         handleEditableShape(polyline, dataShape)
@@ -201,6 +211,14 @@ export default function SiteMap() {
 
       polyline.setMap(map);
     });
+
+    window.google.maps.event.addDomListener(
+      document.getElementById("delete-button"),
+      "click",
+      function () {
+        handleDeleteShapeSelected();
+      }
+    );
   };
 
   const handleFinishDrawShape = (e, drawingManager, dataShape) => {
@@ -221,21 +239,48 @@ export default function SiteMap() {
 
     dataShape = [...dataShape, objectShape];
     setDataShape(dataShape);
-
     localStorage.setItem("dataShape", JSON.stringify(dataShape));
+
+    newShape.setEditable(false);
     drawingManager.setDrawingMode(null);
-    handleShapeSelected(newShape);
+    // handleShapeSelected(newShape);
 
     window.google.maps.event.addListener(newShape, "click", function (e) {
       handleShapeSelected(newShape);
     });
+
+    window.google.maps.event.addDomListener(
+      document.getElementById("delete-button"),
+      "click",
+      function () {
+        handleDeleteShapeSelected();
+      }
+    );
 
     if (newShape.type === "polyline") {
       window.google.maps.event.addListener(newShape.getPath(), "set_at", () =>
         handleEditableShape(newShape, dataShape)
       );
     }
+  };
 
+  const clearInfoWindow = () => {
+    if (infoWindowActive) {
+      infoWindowActive.open(null);
+    }
+  };
+
+  const showInfoWindow = (e, polyline, map) => {
+    clearInfoWindow();
+    let infoWindow = new window.google.maps.InfoWindow({
+      content: polyline.name,
+    });
+
+    let position = e.latLng;
+    infoWindow.setPosition(position);
+    infoWindow.open(map);
+
+    infoWindowActive = infoWindow;
   };
 
   const buildColorPalette = () => {
@@ -289,8 +334,6 @@ export default function SiteMap() {
   };
 
   const handleSelectColor = (color) => {
-    // console.log("drawingManager", drawingManager);
-
     dataOptions.map((data, index) => {
       if (data.color === color) {
         let buttons = document.getElementsByClassName("button-color");
@@ -336,7 +379,6 @@ export default function SiteMap() {
   };
 
   const handleShapeSelected = (shape) => {
-    console.log('shape shape', shape)
     clearShapeSelected();
     shape.setEditable(true);
     shapeSelected = shape;
@@ -356,17 +398,24 @@ export default function SiteMap() {
   };
 
   const handleDeleteShapeSelected = () => {
-
+    let data = JSON.parse(localStorage.getItem("dataShape"));
     if (shapeSelected) {
-      let newData = dataShape.filter((shape) => shape.id !== shapeSelected.id);
-      setDataShape(newData);
+      let newData = data.filter((shape) => shape.id !== shapeSelected.id);
 
+      setDataShape(newData);
       localStorage.setItem("dataShape", JSON.stringify(newData));
+
+      if(infoWindowActive) {
+        infoWindowActive.open(null)
+      }
       shapeSelected.setMap(null);
     }
   };
 
   const handleEditableShape = (shape, dataShape) => {
+    if (infoWindowActive) {
+      infoWindowActive.open(null);
+    }
     let paths = handleParsePaths(shape);
 
     if (dataShape.length) {
